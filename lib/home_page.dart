@@ -1,3 +1,5 @@
+// ignore_for_file: sort_child_properties_last
+
 import 'package:flutter/material.dart';
 import 'package:sisa_baik/pages/scan_qr_page.dart';
 import 'pages/home_content.dart';
@@ -14,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  double _scale = 1.0;
 
   final List<Widget> _pages = [
     const HomeContent(),
@@ -38,6 +41,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          false, // ← Penting: mencegah tombol naik saat keyboard muncul
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: _pages[_selectedIndex],
@@ -82,8 +87,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  double _scale = 1.0;
 
   Widget _buildNavItem({
     required int index,
