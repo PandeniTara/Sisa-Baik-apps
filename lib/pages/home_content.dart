@@ -47,6 +47,18 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
+  Color _getPoinLevelColor(int poin) {
+    if (poin <= 100) {
+      return const Color(0xFFCD7F32); // Bronze
+    } else if (poin <= 200) {
+      return const Color(0xFFC0C0C0); // Silver
+    } else if (poin <= 300) {
+      return const Color(0xFFFFD700); // Gold
+    } else {
+      return Colors.blueAccent; // Diamond
+    }
+  }
+
   Future<void> _loadUser() async {
     final id = await Prefs.getUserId();
     if (id != null) {
@@ -81,6 +93,8 @@ class _HomeContentState extends State<HomeContent> {
             })
             .toList();
 
+    final poinColor = _getPoinLevelColor(_user?.totalPoin ?? 0);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
@@ -99,30 +113,59 @@ class _HomeContentState extends State<HomeContent> {
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        'https://cdn-icons-png.flaticon.com/512/2922/2922510.png',
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.blueAccent, width: 2),
                       ),
-                      radius: 24,
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        backgroundImage:
+                            (_user?.foto != null &&
+                                    File(_user!.foto!).existsSync())
+                                ? FileImage(File(_user!.foto!))
+                                : const AssetImage('assets/default_avatar.png')
+                                    as ImageProvider,
+                        child:
+                            (_user?.foto == null)
+                                ? const Icon(
+                                  Icons.person,
+                                  size: 30,
+                                  color: Colors.grey,
+                                )
+                                : null,
+                      ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           _getGreeting(),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-
-                        Text(
-                          _user?.nama ?? 'User',
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _user?.nama ?? 'Pengguna',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
                         ),
                       ],
@@ -135,16 +178,16 @@ class _HomeContentState extends State<HomeContent> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 3,
-                  color: Colors.amber.shade100,
+                  color: poinColor.withOpacity(0.8),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.amber.shade300,
+                            color: poinColor,
                           ),
                           child: const Icon(Icons.star, color: Colors.white),
                         ),
@@ -160,7 +203,7 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                             ),
                             Text(
-                              "Total: ${_user?.totalPoin ?? 0} poin",
+                              "${_user?.totalPoin ?? 0} poin",
                               style: const TextStyle(fontSize: 14),
                             ),
                           ],
@@ -177,7 +220,7 @@ class _HomeContentState extends State<HomeContent> {
                     hintText: 'Cari sumbangan disini...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
-                    fillColor: Colors.grey.shade200,
+                    fillColor: Colors.blue.shade200,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -186,81 +229,58 @@ class _HomeContentState extends State<HomeContent> {
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  height: 150,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1606788075760-14d3abb6c979',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          const Color.fromARGB(
-                            255,
-                            0,
-                            55,
-                            252,
-                          ).withOpacity(0.75),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Ribuan anak tidak mendapatkan makanan bergizi karena keterbatasan ekonomi!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const FormSumbangan(),
-                              ),
-                            );
-                            if (result != null && result is Map) {
-                              _loadRekomendasi(); // update list
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Sumbangkan sekarang',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        const Color.fromARGB(255, 0, 0, 210).withOpacity(1),
+                        const Color.fromARGB(0, 103, 177, 255),
                       ],
                     ),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Ribuan anak tidak mendapatkan makanan bergizi karena keterbatasan ekonomi!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const FormSumbangan(),
+                            ),
+                          );
+                          if (result != null && result is Map) {
+                            _loadRekomendasi(); // update list
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Sumbangkan sekarang',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -400,7 +420,7 @@ class _HomeContentState extends State<HomeContent> {
                   fit: BoxFit.cover,
                 ),
               )
-              : const SizedBox.shrink(), // Jika image tidak tersedia, tampilkan kosong
+              : const SizedBox.shrink(),
           Padding(
             padding: const EdgeInsets.all(10),
             child: Column(

@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sisa_baik/helper/apphelper.dart';
 import 'package:sisa_baik/models/donasi.dart';
 import 'sumbangan.detail.dart';
@@ -41,102 +42,111 @@ class _SumbanganContentState extends State<SumbanganContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF2F6FC),
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Colors.blueAccent,
-        elevation: 4,
+        elevation: 2,
         centerTitle: true,
-        title: const Text(
+        automaticallyImplyLeading: false,
+        title: Text(
           "Sumbangan",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 🔄 Filter Kategori
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _kategoriList.length,
-                itemBuilder: (context, index) {
-                  final kategori = _kategoriList[index];
-                  final isSelected = kategori == _selectedKategori;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedKategori = kategori;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.blueAccent : Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: Colors.blueAccent),
-                          boxShadow:
-                              isSelected
-                                  ? [
-                                    BoxShadow(
-                                      color: Colors.blueAccent.withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ]
-                                  : [],
-                        ),
-                        child: Text(
-                          kategori,
-                          style: TextStyle(
-                            color:
-                                isSelected ? Colors.white : Colors.blueAccent,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+            _buildFilterChips(),
+            const SizedBox(height: 20),
+            _sumbanganList.isEmpty
+                ? Expanded(
+                  child: Center(
+                    child: Text(
+                      'Belum ada data sumbangan.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.black54,
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 📦 List Sumbangan
-            Expanded(
-              child:
-                  _sumbanganList.isEmpty
-                      ? const Center(
-                        child: Text(
-                          'Belum ada data sumbangan.',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      )
-                      : ListView(
-                        children:
-                            _sumbanganList
-                                .where(
-                                  (item) =>
-                                      _selectedKategori == "All" ||
-                                      item.jenisMakanan.name.toLowerCase() ==
-                                          _selectedKategori.toLowerCase(),
-                                )
-                                .map((item) => _buildDonationCard(item))
-                                .toList(),
-                      ),
-            ),
+                  ),
+                )
+                : Expanded(
+                  child: ListView(
+                    children:
+                        _sumbanganList
+                            .where(
+                              (item) =>
+                                  _selectedKategori == "All" ||
+                                  item.jenisMakanan.name.toLowerCase() ==
+                                      _selectedKategori.toLowerCase(),
+                            )
+                            .map(_buildDonationCard)
+                            .toList(),
+                  ),
+                ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _kategoriList.length,
+        itemBuilder: (context, index) {
+          final kategori = _kategoriList[index];
+          final isSelected = kategori == _selectedKategori;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
+                setState(() {
+                  _selectedKategori = kategori;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.blueAccent : Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: Colors.blueAccent),
+                  boxShadow:
+                      isSelected
+                          ? [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                          : [],
+                ),
+                child: Text(
+                  kategori,
+                  style: GoogleFonts.poppins(
+                    color: isSelected ? Colors.white : Colors.blueAccent,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -155,15 +165,11 @@ class _SumbanganContentState extends State<SumbanganContent> {
         margin: const EdgeInsets.only(bottom: 20),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.blueGrey.withOpacity(0.2),
+              color: Colors.blueGrey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -175,21 +181,21 @@ class _SumbanganContentState extends State<SumbanganContent> {
               borderRadius: BorderRadius.circular(14),
               child: Image.file(
                 File(item.imagePath!),
-                width: 100,
-                height: 100,
+                width: 90,
+                height: 90,
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     item.nama,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                       color: Colors.black87,
                     ),
                   ),
@@ -205,35 +211,31 @@ class _SumbanganContentState extends State<SumbanganContent> {
                     ),
                     child: Text(
                       "${item.jumlah} kg/pcs",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.green[800],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 6),
                   if (item.latitude != null && item.longitude != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: Colors.redAccent,
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: Colors.redAccent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item.latitude!.toStringAsFixed(5)}, ${item.longitude!.toStringAsFixed(5)}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${item.latitude!.toStringAsFixed(5)}, ${item.longitude!.toStringAsFixed(5)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                 ],
               ),

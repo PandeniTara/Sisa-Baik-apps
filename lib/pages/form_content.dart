@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, deprecated_member_use
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -70,9 +70,21 @@ class _FormSumbanganState extends State<FormSumbangan> {
   }
 
   void _showSnackbar(String message, {Color color = Colors.red}) {
-    ScaffoldMessenger.of(
-      context as BuildContext,
-    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+    if (!mounted) return;
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 3),
+      action: SnackBarAction(
+        label: 'Tutup',
+        textColor: Colors.white,
+        onPressed: () {},
+      ),
+    );
+
+    ScaffoldMessenger.of(context as BuildContext).clearSnackBars();
+    ScaffoldMessenger.of(context as BuildContext).showSnackBar(snackBar);
   }
 
   Future<void> _submit() async {
@@ -122,12 +134,12 @@ class _FormSumbanganState extends State<FormSumbangan> {
       if (user != null) {
         final updatedUser = user.copyWith(
           totalSumbangan: totalJumlah.toInt(),
-          totalPoin: user.totalPoin + 10,
+          totalPoin: user.totalPoin + 100,
         );
         await db.updateUser(updatedUser);
       }
 
-      final updatedUser = await AppDatabase().getUserById(userId);
+      final updatedUser = await db.getUserById(userId);
       print('✅ Total Sumbangan: ${updatedUser?.totalSumbangan}');
       print('✅ Total Poin: ${updatedUser?.totalPoin}');
 
@@ -154,116 +166,146 @@ class _FormSumbanganState extends State<FormSumbangan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Form Sumbangan"),
+        title: const Text(
+          "Form Sumbangan",
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.blueAccent,
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 6,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _namaController,
-                  decoration: const InputDecoration(
-                    labelText: "Nama Makanan",
-                    prefixIcon: Icon(Icons.fastfood),
-                    filled: true,
-                    fillColor: Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _jumlahController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: "Jumlah (Kg / Pcs)",
-                    prefixIcon: Icon(Icons.numbers),
-                    filled: true,
-                    fillColor: Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _catatanController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: "Catatan",
-                    prefixIcon: Icon(Icons.note_alt_outlined),
-                    filled: true,
-                    fillColor: Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<JenisMakanan>(
-                  value: _selectedJenis,
-                  decoration: const InputDecoration(
-                    labelText: "Jenis Makanan",
-                    filled: true,
-                    fillColor: Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(),
-                  ),
-                  items:
-                      JenisMakanan.values.map((jenis) {
-                        return DropdownMenuItem(
-                          value: jenis,
-                          child: Text(jenis.name),
-                        );
-                      }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedJenis = value;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.image),
-                  label: const Text("Pilih Gambar dari Galeri"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepOrange,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_imageFile != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      _imageFile!,
-                      height: 160,
-                      fit: BoxFit.cover,
+                ],
+              ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _namaController,
+                    decoration: InputDecoration(
+                      labelText: "Nama Makanan",
+                      prefixIcon: const Icon(Icons.fastfood),
+                      filled: true,
+                      fillColor: const Color(0xFFF9F9F9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _submit,
-                  icon: const Icon(Icons.send),
-                  label: const Text("Kirim Sumbangan"),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _jumlahController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Jumlah (Kg / Pcs)",
+                      prefixIcon: const Icon(Icons.numbers),
+                      filled: true,
+                      fillColor: const Color(0xFFF9F9F9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
-                    textStyle: const TextStyle(fontSize: 16),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _catatanController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Catatan",
+                      prefixIcon: const Icon(Icons.note_alt_outlined),
+                      filled: true,
+                      fillColor: const Color(0xFFF9F9F9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<JenisMakanan>(
+                    value: _selectedJenis,
+                    decoration: InputDecoration(
+                      labelText: "Jenis Makanan",
+                      filled: true,
+                      fillColor: const Color(0xFFF9F9F9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items:
+                        JenisMakanan.values.map((jenis) {
+                          return DropdownMenuItem(
+                            value: jenis,
+                            child: Text(jenis.name),
+                          );
+                        }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedJenis = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.image),
+                    label: const Text("Pilih Gambar dari Galeri"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_imageFile != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        _imageFile!,
+                        height: 160,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _submit,
+                    icon: const Icon(Icons.send),
+                    label: const Text("Kirim Sumbangan"),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
